@@ -1,206 +1,52 @@
-:root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --background-color: #f8f9fa;
-    --card-background: #ffffff;
-    --border-color: #dee2e6;
-    --text-color: #343a40;
-    --heading-color: #212529;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --input-border: #ced4da;
-    --focus-outline: rgba(0, 123, 255, 0.25);
-}
+/* ... (existing CSS from previous response) ... */
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1rem 0;
-    text-align: center;
-    box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-h1 {
-    margin: 0;
-    font-size: 2rem;
-}
-
-.tabs {
-    display: flex;
-    justify-content: center;
-    background-color: var(--card-background);
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 1.5rem;
-    box-shadow: 0 1px 2px var(--shadow-color);
-}
-
-.tab-button {
-    background-color: transparent;
-    border: none;
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: var(--text-color);
-    border-bottom: 2px solid transparent;
-}
-
-.tab-button:hover:not(.active) {
-    background-color: #e9ecef;
-    color: var(--primary-color);
-}
-
-.tab-button.active {
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--primary-color);
-    font-weight: bold;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto 2rem auto;
-    padding: 0 1rem;
-    flex-grow: 1;
-}
-
-.tab-content {
-    display: none;
-    padding: 1rem 0;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.tab-content.active {
-    display: grid; /* Use grid for layout of tool cards */
-}
-
-.tool-card {
-    background-color: var(--card-background);
+/* NEW: Styles for Products Display */
+.products-table-container {
+    max-height: 400px; /* Limit height to enable scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px var(--shadow-color);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    border-radius: 0.25rem;
+    margin-top: 1rem;
+    padding: 0.5rem;
 }
 
-.tool-card h2 {
-    color: var(--heading-color);
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-}
-
-.tool-card .use-case {
-    font-size: 0.9rem;
-    color: var(--secondary-color);
-    margin-top: -0.5rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px dashed var(--border-color);
-    padding-bottom: 0.75rem;
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.input-group label {
-    font-weight: bold;
-    color: var(--heading-color);
-    font-size: 0.95rem;
-}
-
-input[type="number"],
-select {
+.products-table {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--input-border);
-    border-radius: 0.25rem;
-    font-size: 1rem;
-    color: var(--text-color);
-    box-sizing: border-box; /* Ensure padding doesn't increase width */
-    -webkit-appearance: none; /* Remove default styling for number inputs */
-    -moz-appearance: textfield; /* Firefox styling */
+    border-collapse: collapse;
+    font-size: 0.85rem;
 }
 
-input[type="number"]:focus,
-select:focus {
-    border-color: var(--primary-color);
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem var(--focus-outline);
+.products-table th,
+.products-table td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    text-align: left;
 }
 
-.result-display {
-    background-color: #e9f7ff; /* Light blue background for results */
-    border: 1px solid #cceeff;
-    border-radius: 0.25rem;
-    padding: 1rem;
-    font-size: 1.1rem;
+.products-table th {
+    background-color: #e9ecef;
     font-weight: bold;
-    color: var(--primary-color);
+    position: sticky; /* Keep header visible during scroll */
+    top: 0;
+    z-index: 1;
+}
+
+.products-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.products-table input[type="checkbox"] {
+    width: auto; /* Override 100% width */
+    margin-right: 0.5rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
     margin-top: 1rem;
 }
 
-.result-display span {
-    color: var(--heading-color);
-}
-
-/* Home Purpose Lighting Suggestion Specific Styles */
-#roomContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.room-entry {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 0.75rem;
-    align-items: center;
-    padding: 0.75rem;
-    border: 1px dashed var(--border-color);
-    border-radius: 0.25rem;
-}
-
-.room-entry label {
-    font-weight: normal; /* Less bold than main input labels */
-}
-
-.room-entry select {
-    width: 100%;
-}
-
-.remove-room-button {
-    background-color: #dc3545; /* Red for remove button */
-    color: white;
-    border: none;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease;
-}
-
-.remove-room-button:hover {
-    background-color: #c82333;
-}
-
-#addRoomButton {
+.button-group button {
     background-color: var(--primary-color);
     color: white;
     border: none;
@@ -209,68 +55,23 @@ select:focus {
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.2s ease;
-    width: auto;
-    align-self: flex-start; /* Align button to start of card */
 }
 
-#addRoomButton:hover {
+.button-group button:hover:not(:disabled) {
     background-color: #0056b3;
 }
 
-/* Accessibility (A11Y) */
-[aria-label] {
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    height: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
+.button-group button:disabled {
+    background-color: var(--secondary-color);
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
-/* Basic responsive adjustments */
-@media (max-width: 768px) {
-    .container {
-        padding: 0 0.5rem;
-    }
-
-    h1 {
-        font-size: 1.75rem;
-    }
-
-    .tab-button {
-        padding: 0.8rem 1rem;
-        font-size: 0.9rem;
-    }
-
-    .tab-content {
-        grid-template-columns: 1fr; /* Stack cards on mobile */
-    }
-
-    .tool-card {
-        padding: 1rem;
-    }
-
-    .room-entry {
-        grid-template-columns: 1fr; /* Stack room entry elements on mobile */
-    }
-
-    .room-entry label {
-        margin-top: 0.5rem;
-    }
-}
-
-/* Further smaller mobile adjustments */
-@media (max-width: 480px) {
-    .tabs {
-        flex-direction: column; /* Stack tab buttons on very small screens */
-    }
-
-    .tab-button {
-        width: 100%;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .tab-button.active {
-        border-bottom: 2px solid var(--primary-color); /* Maintain active indicator */
-    }
+/* Align price columns to the right */
+.products-table td:nth-child(5), /* Price (₹) */
+.products-table td:nth-child(6), /* GST 18% */
+.products-table td:nth-child(7)  /* Total Price */
+{
+    text-align: right;
+    white-space: nowrap; /* Prevent wrapping for price numbers */
 }
