@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lighting & Measurement Tools</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Include jsPDF library for client-side PDF generation.
+         You would download this and host it locally, or use a CDN. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <header>
@@ -13,9 +17,11 @@
     <nav class="tabs">
         <button class="tab-button active" data-tab="converterTools">Converter Tools</button>
         <button class="tab-button" data-tab="lightingTools">Lighting Tools</button>
+        <button class="tab-button" data-tab="estimationPdfGenerator">Estimation PDF</button> <!-- New Tab -->
     </nav>
 
     <main class="container">
+        <!-- Existing Converter Tools tab content -->
         <div id="converterTools" class="tab-content active">
             <section class="tool-card">
                 <h2>Feet ⇄ Meter Converter</h2>
@@ -31,6 +37,7 @@
             </section>
         </div>
 
+        <!-- Existing Lighting Tools tab content -->
         <div id="lightingTools" class="tab-content">
             <section class="tool-card">
                 <h2>Watt ⇄ Lumen Converter</h2>
@@ -120,6 +127,42 @@
                 </div>
             </section>
         </div>
+
+        <!-- NEW TAB: Estimation PDF Generator -->
+        <div id="estimationPdfGenerator" class="tab-content">
+            <section class="tool-card">
+                <h2>Product Estimation PDF Generator</h2>
+                <p class="use-case">Loads product data from 'products.json' to generate an estimation PDF.</p>
+
+                <div class="input-group">
+                    <label for="customerName">Customer Name:</label>
+                    <input type="text" id="customerName" placeholder="Enter customer name" aria-label="Customer name">
+                </div>
+                <div class="input-group">
+                    <label for="customerEmail">Customer Email:</label>
+                    <input type="email" id="customerEmail" placeholder="Enter customer email" aria-label="Customer email">
+                </div>
+                <div class="input-group">
+                    <label for="estimateId">Estimate ID:</label>
+                    <input type="text" id="estimateId" value="EST-001" placeholder="e.g., EST-001" aria-label="Estimate ID">
+                </div>
+
+                <div class="button-group">
+                    <button type="button" id="loadProductsButton" aria-label="Load Products Data">Load Product Data</button>
+                    <button type="button" id="generatePdfButton" disabled aria-label="Generate Estimation PDF">Generate Estimation PDF</button>
+                </div>
+
+                <h3>Available Products for Estimation:</h3>
+                <div id="productsDisplay" class="products-table-container">
+                    <p>Click "Load Product Data" to see products.</p>
+                    <!-- Products will be dynamically loaded here -->
+                </div>
+                 <div class="result-display">
+                    <p>Total Estimated Price (Selected Products): <span id="totalEstimatedPrice">₹ 0.00</span></p>
+                </div>
+            </section>
+        </div>
+
     </main>
 
     <script src="script.js"></script>
