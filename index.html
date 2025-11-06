@@ -8,108 +8,118 @@
 </head>
 <body>
     <header>
-        <h1>💡 Lighting & Measurement Tools</h1>
-        <p>Client-Side Utilities for Industry Professionals</p>
+        <h1>Lighting & Measurement Tools</h1>
     </header>
-
     <nav class="tabs">
-        <button class="tab-button active" data-tool-group="converter">Converter Tools</button>
-        <button class="tab-button" data-tool-group="lighting">Lighting Tools</button>
+        <button class="tab-button active" data-tab="converterTools">Converter Tools</button>
+        <button class="tab-button" data-tab="lightingTools">Lighting Tools</button>
     </nav>
 
     <main class="container">
-        <section id="converter" class="tool-group active">
-            <h2>Feet ⇄ Meter Converter</h2>
-            <p class="use-case">**Use Case:** Useful for pole height, cable length, site measurements.</p>
-            <div class="tool-card">
+        <div id="converterTools" class="tab-content active">
+            <section class="tool-card">
+                <h2>Feet ⇄ Meter Converter</h2>
+                <p class="use-case">Useful for pole height, cable length, site measurements.</p>
                 <div class="input-group">
-                    <label for="feetInput">Feet (ft)</label>
-                    <input type="number" id="feetInput" min="0" step="0.01" value="1">
+                    <label for="feetInput">Feet (ft):</label>
+                    <input type="number" id="feetInput" placeholder="Enter feet" aria-label="Feet input">
                 </div>
                 <div class="input-group">
-                    <label for="meterInput">Meters (m)</label>
-                    <input type="number" id="meterInput" min="0" step="0.01" value="0.3048">
+                    <label for="metersInput">Meters (m):</label>
+                    <input type="number" id="metersInput" placeholder="Enter meters" aria-label="Meters input">
                 </div>
-            </div>
-            <div class="result-area" id="feetMeterResult"></div>
-        </section>
+            </section>
+        </div>
 
-        <section id="lighting" class="tool-group hidden">
-            <h3>Watt ⇄ Lumen Converter</h3>
-            <p class="use-case">**Use Case:** Customers ask 'How bright is this light?' Use lumen/watt conversion for LED specs.</p>
-            <div class="tool-card">
+        <div id="lightingTools" class="tab-content">
+            <section class="tool-card">
+                <h2>Watt ⇄ Lumen Converter</h2>
+                <p class="use-case">Customers ask 'How bright is this light?' Use lumen/watt conversion for LED specs.</p>
                 <div class="input-group">
-                    <label for="wattsInput">Watts (W)</label>
-                    <input type="number" id="wattsInput" min="0" step="0.1" value="10">
+                    <label for="wattsInput">Watts (W):</label>
+                    <input type="number" id="wattsInput" placeholder="Enter watts" aria-label="Watts input">
                 </div>
                 <div class="input-group">
-                    <label for="efficacyInput">Efficacy (lm/W)</label>
-                    <input type="number" id="efficacyInput" min="1" step="1" value="100">
+                    <label for="efficacyInput">Efficacy (lm/W):</label>
+                    <input type="number" id="efficacyInput" value="100" placeholder="Enter efficacy" aria-label="Efficacy input">
                 </div>
                 <div class="result-display">
-                    <label>Lumens (lm)</label>
-                    <output id="lumensOutput">1000.00</output>
+                    <p>Lumens (lm): <span id="lumensOutput">0</span></p>
                 </div>
-            </div>
-            
-            <hr>
+            </section>
 
-            <h3>Simplified Lux Calculator</h3>
-            <p class="use-case">**Use Cases:** For suggesting correct lighting for: Warehouses, Streets, Homes, Offices.</p>
-            <div class="tool-card">
+            <section class="tool-card">
+                <h2>Lux Calculator (Simplified)</h2>
+                <p class="use-case">For suggesting correct lighting for: Warehouses, Streets, Homes, Offices.</p>
                 <div class="input-group">
-                    <label for="luxLumens">Fixture Lumen Output (lm)</label>
-                    <input type="number" id="luxLumens" min="0" step="1" value="10000">
+                    <label for="luxWattageInput">Wattage (W):</label>
+                    <input type="number" id="luxWattageInput" placeholder="Enter wattage" aria-label="Wattage for lux calculator">
                 </div>
                 <div class="input-group">
-                    <label for="luxHeight">Mounting Height (m)</label>
-                    <input type="number" id="luxHeight" min="0.5" step="0.1" value="5">
+                    <label for="mountingHeightInput">Mounting Height (m):</label>
+                    <input type="number" id="mountingHeightInput" placeholder="Enter mounting height" aria-label="Mounting height for lux calculator">
+                </div>
+                <div class="input-group">
+                    <label for="fixtureLumenOutputInput">Fixture Lumen Output (lm):</label>
+                    <input type="number" id="fixtureLumenOutputInput" placeholder="Enter lumen output" aria-label="Fixture lumen output for lux calculator">
                 </div>
                 <div class="result-display">
-                    <label>Approximate Lux (lx)</label>
-                    <output id="luxResult">280.00</output>
+                    <p>Approximate Lux: <span id="approxLuxOutput">0</span></p>
                 </div>
-            </div>
+            </section>
 
-            <hr>
-
-            <h3>LED Driver Calculator</h3>
-            <div class="tool-card">
+            <section class="tool-card">
+                <h2>LED Driver Calculator</h2>
                 <div class="input-group">
-                    <label for="ledVf">Forward Voltage ($V_f$) per LED (V)</label>
-                    <input type="number" id="ledVf" min="0.1" step="0.1" value="3.2">
+                    <label for="forwardVoltageInput">Forward Voltage (Vf) per LED (V):</label>
+                    <input type="number" id="forwardVoltageInput" placeholder="e.g., 3.2" aria-label="Forward voltage per LED">
                 </div>
                 <div class="input-group">
-                    <label for="ledCurrent">Current ($I$) per LED (mA)</label>
-                    <input type="number" id="ledCurrent" min="1" step="1" value="300">
+                    <label for="currentInput">Current (I) per LED (mA):</label>
+                    <input type="number" id="currentInput" placeholder="e.g., 350" aria-label="Current per LED">
                 </div>
                 <div class="input-group">
-                    <label for="ledCount">Number of LEDs in series</label>
-                    <input type="number" id="ledCount" min="1" step="1" value="10">
+                    <label for="numLedsInput">Number of LEDs in series:</label>
+                    <input type="number" id="numLedsInput" placeholder="e.g., 10" aria-label="Number of LEDs in series">
                 </div>
                 <div class="result-display">
-                    <label>Total Voltage (V)</label>
-                    <output id="driverVoltage">32.00</output>
+                    <p>Total Voltage: <span id="driverTotalVoltage">0</span> V</p>
+                    <p>Total Power: <span id="driverTotalPower">0</span> W</p>
+                    <p>Recommended Driver Specs: <span id="driverRecommendation">N/A</span></p>
                 </div>
-                <div class="result-display">
-                    <label>Total Power (W)</label>
-                    <output id="driverPower">9.60</output>
-                </div>
-            </div>
-            <div class="recommendation-area" id="driverRecommendation">
-                **Recommendation:** Suitable for a constant current driver (300mA) with a minimum operating voltage of 32V and power rating of at least 9.60W.
-            </div>
+            </section>
 
-            <hr>
-
-            <h3>Home Purpose Lighting Suggestion</h3>
-            <div id="homeLightingTool" class="tool-card">
-                <div id="roomContainers">
+            <section class="tool-card">
+                <h2>Home Purpose Lighting Suggestion</h2>
+                <div id="roomContainer">
+                    <div class="room-entry">
+                        <label for="roomType0">Room Type:</label>
+                        <select id="roomType0" aria-label="Room type selection">
+                            <option value="">Select Room</option>
+                            <option value="Bedroom">Bedroom</option>
+                            <option value="Living Room">Living Room</option>
+                            <option value="Kitchen">Kitchen</option>
+                            <option value="Bathroom">Bathroom</option>
+                            <option value="Dining Room">Dining Room</option>
+                            <option value="Office">Office</option>
+                            <option value="Hallway">Hallway</option>
+                        </select>
+                        <label for="numBedrooms0">Number of Bedrooms:</label>
+                        <select id="numBedrooms0" aria-label="Number of bedrooms selection">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4+">4+</option>
+                        </select>
+                        <button type="button" class="remove-room-button" aria-label="Remove room">Remove</button>
                     </div>
-                <button id="addRoomBtn">➕ Add Room</button>
-            </div>
-        </section>
-
+                </div>
+                <button type="button" id="addRoomButton" aria-label="Add another room">Add Room</button>
+                <div class="result-display">
+                    <p id="homeLightingSuggestion">Suggestions will appear here based on room types.</p>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script src="script.js"></script>
