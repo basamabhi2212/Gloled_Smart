@@ -1,270 +1,274 @@
-// --- Global Utility Functions ---
-
-/**
- * Validates a number input to ensure it is non-negative.
- * @param {number} value - The input value.
- * @returns {boolean} True if the value is a positive number (>= 0), false otherwise.
- */
-const isValidInput = (value) => {
-    return !isNaN(value) && value >= 0;
-};
-
-/**
- * Formats a number to a fixed decimal place, handling potential errors.
- * @param {number} value - The number to format.
- * @param {number} [decimals=2] - The number of decimal places.
- * @returns {string} The formatted string or a message if invalid.
- */
-const formatResult = (value, decimals = 2) => {
-    if (isNaN(value) || !isFinite(value)) {
-        return 'Invalid Input';
-    }
-    return value.toFixed(decimals);
-};
-
-// --- SPA Navigation Logic ---
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Tab Switching Logic ---
     const tabButtons = document.querySelectorAll('.tab-button');
-    const toolGroups = document.querySelectorAll('.tool-group');
+    const tabContents = document.querySelectorAll('.tab-content');
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Remove 'active' class from all buttons and hide all tool groups
+            // Remove 'active' class from all buttons and content
             tabButtons.forEach(btn => btn.classList.remove('active'));
-            toolGroups.forEach(group => group.classList.add('hidden'));
+            tabContents.forEach(content => content.classList.remove('active'));
 
-            // Add 'active' class to the clicked button
+            // Add 'active' class to the clicked button and corresponding content
             button.classList.add('active');
-
-            // Show the corresponding tool group
-            const targetId = button.getAttribute('data-tool-group');
-            document.getElementById(targetId).classList.remove('hidden');
+            const targetTab = button.dataset.tab;
+            document.getElementById(targetTab).classList.add('active');
         });
     });
 
-    // Initialize all tool calculations
-    initConverterTools();
-    initLightingTools();
-    initHomeLightingTool();
-});
+    // --- Helper for Input Validation and Error Display ---
+    function getValidNumber(inputElement, defaultValue = 0) {
+        const value = parseFloat(inputElement.value);
+        if (isNaN(value) || value < 0) {
+            // Optionally, provide visual feedback for invalid input
+            // For this exercise, we'll just return 0 or a default
+            inputElement.style.border = '1px solid #dc3545'; // Red border for error
+            setTimeout(() => {
+                inputElement.style.border = '1px solid #ced4da'; // Reset after a short delay
+            }, 1000);
+            return defaultValue;
+        }
+        inputElement.style.border = '1px solid #ced4da'; // Reset if valid
+        return value;
+    }
 
-// --- A. Feet ⇄ Meter Converter ---
-const initConverterTools = () => {
+    // --- A. Feet ⇄ Meter Converter ---
     const feetInput = document.getElementById('feetInput');
-    const meterInput = document.getElementById('meterInput');
-    const resultArea = document.getElementById('feetMeterResult');
+    const metersInput = document.getElementById('metersInput');
     const FEET_TO_METER = 0.3048;
 
-    /**
-     * Handles the conversion logic and updates the output field and result area.
-     * @param {HTMLElement} changedInput - The input field that was just changed.
-     * @param {HTMLElement} otherInput - The input field to update.
-     * @param {Function} conversionFn - The conversion function to apply.
-     * @param {string} unit - The unit of the calculated value.
-     */
-    const handleConversion = (changedInput, otherInput, conversionFn, unit) => {
-        const value = parseFloat(changedInput.value);
-        
-        // Clear previous error messages
-        resultArea.innerHTML = '';
-        
-        if (!isValidInput(value)) {
-            resultArea.innerHTML = `<span class="error-message">Please enter a positive number in ${changedInput.previousElementSibling.textContent}.</span>`;
-            otherInput.value = '';
-            return;
+    function convertFeetToMeters() {
+        const feet = getValidNumber(feetInput);
+        if (feet !== null) {
+            metersInput.value = (feet * FEET_TO_METER).toFixed(4); // 4 decimal places for precision
+        } else {
+            metersInput.value = ''; // Clear if invalid
         }
+    }
 
-        const convertedValue = conversionFn(value);
-        otherInput.value = formatResult(convertedValue, 4);
-        resultArea.innerHTML = `<p>Result: **${formatResult(convertedValue, 4)}** ${unit}</p>`;
-    };
+    function convertMetersToFeet() {
+        const meters = getValidNumber(metersInput);
+        if (meters !== null) {
+            feetInput.value = (meters / FEET_TO_METER).toFixed(4);
+        } else {
+            feetInput.value = ''; // Clear if invalid
+        }
+    }
 
-    // Feet to Meter
-    feetInput.addEventListener('input', () => {
-        handleConversion(
-            feetInput,
-            meterInput,
-            (ft) => ft * FEET_TO_METER,
-            'meters (m)'
-        );
-    });
+    feetInput.addEventListener('input', convertFeetToMeters);
+    metersInput.addEventListener('input', convertMetersToFeet);
 
-    // Meter to Feet
-    meterInput.addEventListener('input', () => {
-        handleConversion(
-            meterInput,
-            feetInput,
-            (m) => m / FEET_TO_METER,
-            'feet (ft)'
-        );
-    });
-};
+    // Initial conversion if there are pre-filled values
+    if (feetInput.value) convertFeetToMeters();
+    if (metersInput.value && !feetInput.value) convertMetersToFeet();
 
-// --- B. Lighting-Specific Tools Initialization ---
-const initLightingTools = () => {
-    // 1. Watt ⇄ Lumen Converter
+
+    // --- B. Lighting-Specific Tools ---
+
+    // Watt ⇄ Lumen Converter
     const wattsInput = document.getElementById('wattsInput');
     const efficacyInput = document.getElementById('efficacyInput');
     const lumensOutput = document.getElementById('lumensOutput');
 
-    const calculateLumens = () => {
-        const watts = parseFloat(wattsInput.value);
-        const efficacy = parseFloat(efficacyInput.value);
-
-        if (!isValidInput(watts) || !isValidInput(efficacy) || efficacy === 0) {
-            lumensOutput.textContent = '0.00';
-            return;
+    function calculateLumens() {
+        const watts = getValidNumber(wattsInput);
+        const efficacy = getValidNumber(efficacyInput, 1); // Efficacy shouldn't be zero
+        if (watts !== null && efficacy !== null) {
+            const lumens = watts * efficacy;
+            lumensOutput.textContent = lumens.toFixed(2);
+        } else {
+            lumensOutput.textContent = '0';
         }
-
-        // Lumens = Watts × Efficacy
-        const lumens = watts * efficacy;
-        lumensOutput.textContent = formatResult(lumens);
-    };
+    }
 
     wattsInput.addEventListener('input', calculateLumens);
     efficacyInput.addEventListener('input', calculateLumens);
-    
-    // Initial run to display default values
-    calculateLumens();
+    calculateLumens(); // Initial calculation on load
 
-    // 2. Lux Calculator (Simplified)
-    const luxLumensInput = document.getElementById('luxLumens');
-    const luxHeightInput = document.getElementById('luxHeight');
-    const luxResultOutput = document.getElementById('luxResult');
+    // Lux Calculator (Simplified)
+    const luxWattageInput = document.getElementById('luxWattageInput');
+    const mountingHeightInput = document.getElementById('mountingHeightInput');
+    const fixtureLumenOutputInput = document.getElementById('fixtureLumenOutputInput');
+    const approxLuxOutput = document.getElementById('approxLuxOutput');
 
-    const calculateLux = () => {
-        const lumens = parseFloat(luxLumensInput.value);
-        const height = parseFloat(luxHeightInput.value);
-        const ROUGH_FACTOR = 0.7; // Rough combined loss/utilization factor
+    function calculateApproxLux() {
+        const wattage = getValidNumber(luxWattageInput); // Not directly used in formula, but collected
+        const mountingHeight = getValidNumber(mountingHeightInput, 1); // Height cannot be zero or negative
+        const fixtureLumen = getValidNumber(fixtureLumenOutputInput);
 
-        if (!isValidInput(lumens) || !isValidInput(height) || height <= 0) {
-            luxResultOutput.textContent = '0.00';
-            return;
+        if (fixtureLumen !== null && mountingHeight !== null && mountingHeight > 0) {
+            // Simplified formula: (Fixture Lumen Output * 0.7) / Mounting Height^2
+            const approximateLux = (fixtureLumen * 0.7) / (mountingHeight * mountingHeight);
+            approxLuxOutput.textContent = approximateLux.toFixed(2);
+        } else {
+            approxLuxOutput.textContent = '0';
         }
+    }
 
-        // Approximate Lux = (Fixture Lumen Output * 0.7) / (Mounting Height^2)
-        const lux = (lumens * ROUGH_FACTOR) / (height * height);
-        luxResultOutput.textContent = formatResult(lux);
-    };
+    luxWattageInput.addEventListener('input', calculateApproxLux);
+    mountingHeightInput.addEventListener('input', calculateApproxLux);
+    fixtureLumenOutputInput.addEventListener('input', calculateApproxLux);
+    calculateApproxLux(); // Initial calculation
 
-    luxLumensInput.addEventListener('input', calculateLux);
-    luxHeightInput.addEventListener('input', calculateLux);
-
-    // Initial run
-    calculateLux();
-
-    // 3. LED Driver Calculator
-    const ledVfInput = document.getElementById('ledVf');
-    const ledCurrentInput = document.getElementById('ledCurrent');
-    const ledCountInput = document.getElementById('ledCount');
-    const driverVoltageOutput = document.getElementById('driverVoltage');
-    const driverPowerOutput = document.getElementById('driverPower');
+    // LED Driver Calculator
+    const forwardVoltageInput = document.getElementById('forwardVoltageInput');
+    const currentInput = document.getElementById('currentInput');
+    const numLedsInput = document.getElementById('numLedsInput');
+    const driverTotalVoltage = document.getElementById('driverTotalVoltage');
+    const driverTotalPower = document.getElementById('driverTotalPower');
     const driverRecommendation = document.getElementById('driverRecommendation');
 
-    const calculateDriverSpecs = () => {
-        const Vf = parseFloat(ledVfInput.value);
-        const current_mA = parseFloat(ledCurrentInput.value);
-        const count = parseInt(ledCountInput.value);
+    function calculateLedDriverSpecs() {
+        const vf = getValidNumber(forwardVoltageInput);
+        const current_mA = getValidNumber(currentInput);
+        const numLeds = getValidNumber(numLedsInput);
 
-        if (!isValidInput(Vf) || !isValidInput(current_mA) || !isValidInput(count) || count < 1) {
-            driverVoltageOutput.textContent = '0.00';
-            driverPowerOutput.textContent = '0.00';
-            driverRecommendation.innerHTML = '<span class="error-message">Please enter valid positive numbers for all fields.</span>';
-            return;
+        if (vf !== null && current_mA !== null && numLeds !== null) {
+            const totalVoltage = vf * numLeds;
+            const totalPower = totalVoltage * (current_mA / 1000); // Convert mA to A
+
+            driverTotalVoltage.textContent = totalVoltage.toFixed(2);
+            driverTotalPower.textContent = totalPower.toFixed(2);
+            driverRecommendation.textContent = `Driver Recommendation: ${totalVoltage.toFixed(0)}-${(totalVoltage * 1.2).toFixed(0)}V, ${totalPower.toFixed(0)}-${(totalPower * 1.2).toFixed(0)}W Constant Current (CC)`;
+        } else {
+            driverTotalVoltage.textContent = '0';
+            driverTotalPower.textContent = '0';
+            driverRecommendation.textContent = 'N/A';
         }
+    }
 
-        // Total Voltage (V) = Vf * Number of LEDs
-        const totalVoltage = Vf * count;
+    forwardVoltageInput.addEventListener('input', calculateLedDriverSpecs);
+    currentInput.addEventListener('input', calculateLedDriverSpecs);
+    numLedsInput.addEventListener('input', calculateLedDriverSpecs);
+    calculateLedDriverSpecs(); // Initial calculation
 
-        // Total Power (W) = Total Voltage * (Current / 1000)
-        const totalPower = totalVoltage * (current_mA / 1000);
+    // Home Purpose Lighting Suggestion
+    const roomContainer = document.getElementById('roomContainer');
+    const addRoomButton = document.getElementById('addRoomButton');
+    const homeLightingSuggestion = document.getElementById('homeLightingSuggestion');
+    let roomCount = 1; // Start with 1 as there's one pre-existing room entry
 
-        driverVoltageOutput.textContent = formatResult(totalVoltage);
-        driverPowerOutput.textContent = formatResult(totalPower);
+    // Function to update suggestions based on current rooms
+    function updateHomeLightingSuggestion() {
+        const roomEntries = roomContainer.querySelectorAll('.room-entry');
+        let suggestions = [];
+        roomEntries.forEach((entry, index) => {
+            const roomTypeSelect = entry.querySelector(`#roomType${index}`);
+            const numBedroomsSelect = entry.querySelector(`#numBedrooms${index}`);
 
-        driverRecommendation.innerHTML = `**Recommendation:** Suitable for a constant current driver (${formatResult(current_mA, 0)}mA) with a minimum operating voltage of **${formatResult(totalVoltage)}V** and power rating of at least **${formatResult(totalPower)}W**.`;
-    };
+            const roomType = roomTypeSelect ? roomTypeSelect.value : '';
+            const numBedrooms = numBedroomsSelect ? numBedroomsSelect.value : ''; // This is less critical for general suggestion
 
-    ledVfInput.addEventListener('input', calculateDriverSpecs);
-    ledCurrentInput.addEventListener('input', calculateDriverSpecs);
-    ledCountInput.addEventListener('input', calculateDriverSpecs);
+            if (roomType) {
+                let suggestion = `For a ${roomType}`;
+                if (roomType === 'Bedroom') {
+                    suggestion += `, consider soft ambient lighting with bedside lamps and a dimmable overhead fixture.`;
+                } else if (roomType === 'Living Room') {
+                    suggestion += `, use layered lighting: ambient, task (reading lamps), and accent lighting (spotlights for art).`;
+                } else if (roomType === 'Kitchen') {
+                    suggestion += `, bright task lighting for countertops, under-cabinet lights, and good general overhead lighting are key.`;
+                } else if (roomType === 'Bathroom') {
+                    suggestion += `, ensure bright, even lighting around the mirror for grooming, and consider a separate dimmable fixture for relaxation.`;
+                } else if (roomType === 'Dining Room') {
+                    suggestion += `, a dimmable chandelier over the table is essential, complemented by ambient lighting.`;
+                } else if (roomType === 'Office') {
+                    suggestion += `, focus on good task lighting for the desk and glare-free ambient light.`;
+                } else if (roomType === 'Hallway') {
+                    suggestion += `, use evenly spaced ceiling lights or wall sconces for safe passage.`;
+                } else {
+                    suggestion += `, general ambient lighting is usually suitable.`;
+                }
+                suggestions.push(suggestion);
+            }
+        });
 
-    // Initial run
-    calculateDriverSpecs();
-};
-
-// --- 4. Home Purpose Lighting Suggestion (Dynamic UI) ---
-const initHomeLightingTool = () => {
-    const addRoomBtn = document.getElementById('addRoomBtn');
-    const roomContainers = document.getElementById('roomContainers');
-    let roomCounter = 0;
-    
-    // Define initial room types for the dropdown
-    const roomTypes = [
-        'Bedroom', 'Living Room', 'Kitchen', 'Bathroom', 'Office/Study', 
-        'Dining Room', 'Hallway', 'Garage', 'Laundry Room'
-    ];
-    
-    // Define the Home Lighting UI Template
-    const createRoomEntry = (initialRoomType, isRemovable = true) => {
-        const container = document.createElement('div');
-        container.classList.add('room-entry');
-        container.setAttribute('data-room-id', ++roomCounter);
-        
-        // Dropdown for Room Type
-        const typeGroup = document.createElement('div');
-        typeGroup.classList.add('input-group');
-        typeGroup.innerHTML = `
-            <label for="roomType${roomCounter}">Room Type</label>
-            <select id="roomType${roomCounter}">
-                ${roomTypes.map(type => 
-                    `<option value="${type.toLowerCase().replace(' ', '-')}" ${type === initialRoomType ? 'selected' : ''}>${type}</option>`
-                ).join('')}
-            </select>
-        `;
-
-        // Dropdown for Number of Bedrooms (or similar metric)
-        const countGroup = document.createElement('div');
-        countGroup.classList.add('input-group');
-        countGroup.innerHTML = `
-            <label for="roomCount${roomCounter}">Approximate Size</label>
-            <select id="roomCount${roomCounter}">
-                <option value="small">Small (e.g. 1 Bed/Bath)</option>
-                <option value="medium" selected>Medium (e.g. 2 Bed/Study)</option>
-                <option value="large">Large (e.g. 3 Bed/Kitchen)</option>
-                <option value="extra-large">Extra Large (e.g. 4+ Bed)</option>
-            </select>
-        `;
-
-        container.appendChild(typeGroup);
-        container.appendChild(countGroup);
-        
-        // Remove Button
-        if (isRemovable) {
-            const removeBtn = document.createElement('button');
-            removeBtn.classList.add('remove-room-btn');
-            removeBtn.textContent = '❌ Remove';
-            removeBtn.addEventListener('click', () => {
-                container.remove();
-            });
-            container.appendChild(removeBtn);
+        if (suggestions.length > 0) {
+            homeLightingSuggestion.innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
+            homeLightingSuggestion.previousElementSibling.textContent = 'Lighting Suggestions:'; // Change label if needed
+        } else {
+            homeLightingSuggestion.textContent = 'Suggestions will appear here based on room types.';
+            homeLightingSuggestion.previousElementSibling.textContent = 'Home Purpose Lighting Suggestion';
         }
+    }
 
-        return container;
-    };
 
     // Function to add a new room entry
-    const addRoomEntry = (initialType = 'Bedroom', isRemovable = true) => {
-        const newEntry = createRoomEntry(initialType, isRemovable);
-        roomContainers.appendChild(newEntry);
-    };
+    addRoomButton.addEventListener('click', () => {
+        const newRoomEntry = document.createElement('div');
+        newRoomEntry.classList.add('room-entry');
+        newRoomEntry.innerHTML = `
+            <label for="roomType${roomCount}">Room Type:</label>
+            <select id="roomType${roomCount}" aria-label="Room type selection">
+                <option value="">Select Room</option>
+                <option value="Bedroom">Bedroom</option>
+                <option value="Living Room">Living Room</option>
+                <option value="Kitchen">Kitchen</option>
+                <option value="Bathroom">Bathroom</option>
+                <option value="Dining Room">Dining Room</option>
+                <option value="Office">Office</option>
+                <option value="Hallway">Hallway</option>
+            </select>
+            <label for="numBedrooms${roomCount}">Number of Bedrooms:</label>
+            <select id="numBedrooms${roomCount}" aria-label="Number of bedrooms selection">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4+">4+</option>
+            </select>
+            <button type="button" class="remove-room-button" aria-label="Remove room">Remove</button>
+        `;
+        roomContainer.appendChild(newRoomEntry);
 
-    // Event listener for the "Add Room" button
-    addRoomBtn.addEventListener('click', () => {
-        // Default new room to 'Kitchen' for variety
-        addRoomEntry('Kitchen'); 
+        // Add event listeners to the new elements
+        const newRoomTypeSelect = newRoomEntry.querySelector(`#roomType${roomCount}`);
+        if (newRoomTypeSelect) {
+            newRoomTypeSelect.addEventListener('change', updateHomeLightingSuggestion);
+        }
+
+        const newNumBedroomsSelect = newRoomEntry.querySelector(`#numBedrooms${roomCount}`);
+        if (newNumBedroomsSelect) {
+            newNumBedroomsSelect.addEventListener('change', updateHomeLightingSuggestion);
+        }
+
+        newRoomEntry.querySelector('.remove-room-button').addEventListener('click', (event) => {
+            event.target.closest('.room-entry').remove();
+            updateHomeLightingSuggestion(); // Update suggestions after removal
+        });
+
+        roomCount++;
+        updateHomeLightingSuggestion(); // Update suggestions after adding
     });
-    
-    // Add the initial default room (Bedroom, not removable)
-    addRoomEntry('Bedroom', false);
-};
+
+    // Add event listeners to initial room entry
+    const initialRoomTypeSelect = document.getElementById('roomType0');
+    if (initialRoomTypeSelect) {
+        initialRoomTypeSelect.addEventListener('change', updateHomeLightingSuggestion);
+    }
+    const initialNumBedroomsSelect = document.getElementById('numBedrooms0');
+    if (initialNumBedroomsSelect) {
+        initialNumBedroomsSelect.addEventListener('change', updateHomeLightingSuggestion);
+    }
+
+    // Add event listener to initial remove button (if it exists)
+    const initialRemoveButton = document.querySelector('.room-entry .remove-room-button');
+    if (initialRemoveButton) {
+        initialRemoveButton.addEventListener('click', (event) => {
+            // Prevent removing the very last room entry
+            if (roomContainer.children.length > 1) {
+                event.target.closest('.room-entry').remove();
+                updateHomeLightingSuggestion();
+            } else {
+                alert("You need at least one room entry.");
+            }
+        });
+    }
+
+    updateHomeLightingSuggestion(); // Initial suggestion on load
+
+    // Trigger initial calculations for all tools on page load
+    // This ensures all output fields show '0' or a calculated value, not just blank.
+    convertFeetToMeters();
+    calculateLumens();
+    calculateApproxLux();
+    calculateLedDriverSpecs();
+});
