@@ -1,183 +1,271 @@
 // Ensure jsPDF is loaded before this script, typically via <script> tags in HTML head/body.
-// window.jsPDF is available if jsPDF.umd.min.js is correctly loaded.
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Tab Switching Logic ---
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
+    // ... (Existing Tab Switching Logic, Helper for Input Validation, Feet/Meter, Watt/Lumen, Lux, LED Driver, Home Purpose Lighting Suggestion) ...
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
+    // --- NEW: Estimation PDF Generator Logic ---
+    const loadProductsButton = document.getElementById('loadProductsButton');
+    const generatePdfButton = document.getElementById('generatePdfButton');
+    const productsDisplay = document.getElementById('productsDisplay');
+    
+    // Get references for new elements
+    const discountPercentageInput = document.getElementById('discountPercentage');
+    const subtotalEstimatedPriceSpan = document.getElementById('subtotalEstimatedPrice');
+    const discountAmountSpan = document.getElementById('discountAmount');
+    const totalEstimatedPriceSpan = document.getElementById('totalEstimatedPrice'); // This existed, but its value calculation changes
 
-            button.classList.add('active');
-            const targetTab = button.dataset.tab;
-            document.getElementById(targetTab).classList.add('active');
+    let allProductsData = [];
+    let selectedProducts = [];
 
-            // Specific action for the Estimation PDF tab
-            if (targetTab === 'estimationPdfGenerator' && !allProductsData.length) {
-                // If the PDF tab is opened and products haven't been loaded, try to load them
-                loadProductData(); 
+    const excelFileName = "Gloled products 2025.json";
+
+    async function loadProductData() {
+        productsDisplay.innerHTML = '<p>Loading product data...</p>';
+        try {
+            const response = await fetch(excelFileName);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            allProductsData = data;
+            displayProductsForSelection(allProductsData);
+            generatePdfButton.disabled = false;
+            console.log("Product data loaded:", allProductsData);
+        } catch (error) {
+            console.error("Failed to load product data:", error);
+            productsDisplay.innerHTML = `<p style="color: red;">Error loading product data: ${error.message}. Please ensure '${excelFileName}' is in the correct location and format.</p>`;
+            generatePdfButton.disabled = true;
+        }
+    }
+
+    function displayProductsForSelection(products) {
+        if (!products.length) {
+            productsDisplay.innerHTML = '<p>No products available.</p>';
+            return;
+        }
+
+        let tableHtml = `
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>SKU</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price (₹)</th>
+                        <th>GST 18%</th>
+                        <th>Total Price</th>
+                        <th>Key Specs</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        products.forEach((product, index) => {
+            const sku = product['Product Code / SKU'] || 'N/A';
+            const name = product['Product Name'] || 'N/A';
+            const category = product['Category'] || 'N/A';
+            const price = parseFloat(product['Price (₹)']) || 0;
+            const gst = parseFloat(product['GST 18%']) || 0;
+            const totalPrice = parseFloat(product['Total Price']) || 0;
+            const specs = product['Key Specifications'] || 'N/A';
+
+            tableHtml += `
+                <tr>
+                    <td><input type="checkbox" data-product-index="${index}" class="product-select-checkbox"></td>
+                    <td>${sku}</td>
+                    <td>${name}</td>
+                    <td>${category}</td>
+                    <td>${price.toFixed(2)}</td>
+                    <td>${gst.toFixed(2)}</td>
+                    <td>${totalPrice.toFixed(2)}</td>
+                    <td>${specs}</td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+                </tbody>
+            </table>
+        `;
+        productsDisplay.innerHTML = tableHtml;
+
+        productsDisplay.querySelectorAll('.product-select-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedProductsAndTotals);
+        });
+        updateSelectedProductsAndTotals(); // Initial calculation after displaying products
+    }
+
+    // Function to update the list of selected products AND recalculate totals with discount
+    function updateSelectedProductsAndTotals() {
+        selectedProducts = [];
+        let rawSubtotal = 0; // Total before any discount
+        
+        productsDisplay.querySelectorAll('.product-select-checkbox:checked').forEach(checkbox => {
+            const index = parseInt(checkbox.dataset.productIndex);
+            if (allProductsData[index]) {
+                selectedProducts.push(allProductsData[index]);
+                rawSubtotal += parseFloat(allProductsData[index]['Total Price']) || 0;
             }
         });
+
+        // Get discount percentage
+        const discountPercent = getValidNumber(discountPercentageInput, 0); // Use 0 as default if invalid
+        
+        // Calculate discount amount
+        const discountAmountValue = (rawSubtotal * (discountPercent / 100));
+        const finalTotalAfterDiscount = rawSubtotal - discountAmountValue;
+
+        // Update display spans
+        subtotalEstimatedPriceSpan.textContent = `₹ ${rawSubtotal.toFixed(2)}`;
+        discountAmountSpan.textContent = `₹ ${discountAmountValue.toFixed(2)}`;
+        totalEstimatedPriceSpan.textContent = `₹ ${finalTotalAfterDiscount.toFixed(2)}`;
+    }
+
+    // Event listener for Load Products button
+    loadProductsButton.addEventListener('click', loadProductData);
+
+    // Event listener for discount percentage input
+    discountPercentageInput.addEventListener('input', updateSelectedProductsAndTotals);
+
+
+    // Event listener for Generate PDF button
+    generatePdfButton.addEventListener('click', () => {
+        if (selectedProducts.length === 0) {
+            alert("Please select at least one product to generate the PDF.");
+            return;
+        }
+        generateEstimationPdf(selectedProducts);
     });
 
-    // --- Helper for Input Validation and Error Display ---
-    function getValidNumber(inputElement, defaultValue = 0) {
-        const value = parseFloat(inputElement.value);
-        if (isNaN(value) || value < 0) {
-            inputElement.style.border = '1px solid #dc3545';
-            setTimeout(() => {
-                inputElement.style.border = '1px solid #ced4da';
-            }, 1000);
-            return defaultValue;
+    // --- PDF Generation Function (using jsPDF and jspdf-autotable) ---
+    function generateEstimationPdf(productsToInclude) {
+        if (typeof window.jsPDF === 'undefined') {
+            alert("PDF library (jsPDF) not loaded. Please check console for errors.");
+            console.error("jsPDF is not defined. Make sure the jsPDF script is loaded correctly.");
+            return;
         }
-        inputElement.style.border = '1px solid #ced4da';
-        return value;
-    }
 
-    // --- A. Feet ⇄ Meter Converter ---
-    const feetInput = document.getElementById('feetInput');
-    const metersInput = document.getElementById('metersInput');
-    const FEET_TO_METER = 0.3048;
+        const doc = new window.jsPDF.jsPDF();
+        let yOffset = 15;
 
-    function convertFeetToMeters() {
-        const feet = getValidNumber(feetInput);
-        metersInput.value = (feet * FEET_TO_METER).toFixed(4);
-    }
+        const customerName = document.getElementById('customerName').value || 'N/A';
+        const customerEmail = document.getElementById('customerEmail').value || 'N/A';
+        const estimateId = document.getElementById('estimateId').value || 'EST-001';
+        const discountPercent = getValidNumber(discountPercentageInput, 0);
 
-    function convertMetersToFeet() {
-        const meters = getValidNumber(metersInput);
-        feetInput.value = (meters / FEET_TO_METER).toFixed(4);
-    }
+        // Header
+        doc.setFontSize(20);
+        doc.text("ESTIMATION QUOTATION", 105, yOffset, null, null, "center");
+        yOffset += 10;
+        doc.setFontSize(12);
+        doc.text(`Estimate ID: ${estimateId}`, 105, yOffset, null, null, "center");
+        yOffset += 15;
 
-    feetInput.addEventListener('input', convertFeetToMeters);
-    metersInput.addEventListener('input', convertMetersToFeet);
-    if (feetInput.value) convertFeetToMeters();
-    if (metersInput.value && !feetInput.value) convertMetersToFeet();
+        // Customer Details
+        doc.setFontSize(12);
+        doc.text("Customer Details:", 15, yOffset);
+        yOffset += 7;
+        doc.text(`Name: ${customerName}`, 15, yOffset);
+        yOffset += 7;
+        doc.text(`Email: ${customerEmail}`, 15, yOffset);
+        yOffset += 10;
 
+        // Product Details Table
+        const tableHeaders = [
+            "SKU", "Product Name", "Category", "Price (₹)", "GST 18%", "Total Price", "Key Specs"
+        ];
+        const tableData = productsToInclude.map(product => [
+            product['Product Code / SKU'] || '',
+            product['Product Name'] || '',
+            product['Category'] || '',
+            (parseFloat(product['Price (₹)']) || 0).toFixed(2),
+            (parseFloat(product['GST 18%']) || 0).toFixed(2),
+            (parseFloat(product['Total Price']) || 0).toFixed(2), // Show original total price per item
+            product['Key Specifications'] || ''
+        ]);
 
-    // --- B. Lighting-Specific Tools ---
+        doc.setFontSize(12);
+        doc.text("Product Details:", 15, yOffset);
+        yOffset += 5;
 
-    // Watt ⇄ Lumen Converter
-    const wattsInput = document.getElementById('wattsInput');
-    const efficacyInput = document.getElementById('efficacyInput');
-    const lumensOutput = document.getElementById('lumensOutput');
-
-    function calculateLumens() {
-        const watts = getValidNumber(wattsInput);
-        const efficacy = getValidNumber(efficacyInput, 1);
-        const lumens = watts * efficacy;
-        lumensOutput.textContent = lumens.toFixed(2);
-    }
-
-    wattsInput.addEventListener('input', calculateLumens);
-    efficacyInput.addEventListener('input', calculateLumens);
-    calculateLumens();
-
-    // Lux Calculator (Simplified)
-    const luxWattageInput = document.getElementById('luxWattageInput');
-    const mountingHeightInput = document.getElementById('mountingHeightInput');
-    const fixtureLumenOutputInput = document.getElementById('fixtureLumenOutputInput');
-    const approxLuxOutput = document.getElementById('approxLuxOutput');
-
-    function calculateApproxLux() {
-        const mountingHeight = getValidNumber(mountingHeightInput, 1);
-        const fixtureLumen = getValidNumber(fixtureLumenOutputInput);
-
-        if (fixtureLumen > 0 && mountingHeight > 0) {
-            const approximateLux = (fixtureLumen * 0.7) / (mountingHeight * mountingHeight);
-            approxLuxOutput.textContent = approximateLux.toFixed(2);
-        } else {
-            approxLuxOutput.textContent = '0';
-        }
-    }
-
-    luxWattageInput.addEventListener('input', calculateApproxLux);
-    mountingHeightInput.addEventListener('input', calculateApproxLux);
-    fixtureLumenOutputInput.addEventListener('input', calculateApproxLux);
-    calculateApproxLux();
-
-    // LED Driver Calculator
-    const forwardVoltageInput = document.getElementById('forwardVoltageInput');
-    const currentInput = document.getElementById('currentInput');
-    const numLedsInput = document.getElementById('numLedsInput');
-    const driverTotalVoltage = document.getElementById('driverTotalVoltage');
-    const driverTotalPower = document.getElementById('driverTotalPower');
-    const driverRecommendation = document.getElementById('driverRecommendation');
-
-    function calculateLedDriverSpecs() {
-        const vf = getValidNumber(forwardVoltageInput);
-        const current_mA = getValidNumber(currentInput);
-        const numLeds = getValidNumber(numLedsInput);
-
-        if (vf > 0 && current_mA > 0 && numLeds > 0) {
-            const totalVoltage = vf * numLeds;
-            const totalPower = totalVoltage * (current_mA / 1000); // Convert mA to A
-
-            driverTotalVoltage.textContent = totalVoltage.toFixed(2);
-            driverTotalPower.textContent = totalPower.toFixed(2);
-            driverRecommendation.textContent = `Driver Recommendation: ${totalVoltage.toFixed(0)}-${(totalVoltage * 1.2).toFixed(0)}V, ${totalPower.toFixed(0)}-${(totalPower * 1.2).toFixed(0)}W Constant Current (CC)`;
-        } else {
-            driverTotalVoltage.textContent = '0';
-            driverTotalPower.textContent = '0';
-            driverRecommendation.textContent = 'N/A';
-        }
-    }
-
-    forwardVoltageInput.addEventListener('input', calculateLedDriverSpecs);
-    currentInput.addEventListener('input', calculateLedDriverSpecs);
-    numLedsInput.addEventListener('input', calculateLedDriverSpecs);
-    calculateLedDriverSpecs();
-
-    // Home Purpose Lighting Suggestion
-    const roomContainer = document.getElementById('roomContainer');
-    const addRoomButton = document.getElementById('addRoomButton');
-    const homeLightingSuggestion = document.getElementById('homeLightingSuggestion');
-    let roomCount = 1;
-
-    function updateHomeLightingSuggestion() {
-        const roomEntries = roomContainer.querySelectorAll('.room-entry');
-        let suggestions = [];
-        roomEntries.forEach((entry, index) => {
-            const roomTypeSelect = entry.querySelector(`#roomType${index}`);
-            const roomType = roomTypeSelect ? roomTypeSelect.value : '';
-
-            if (roomType) {
-                let suggestion = `For a ${roomType}`;
-                if (roomType === 'Bedroom') suggestion += `, consider soft ambient lighting with bedside lamps and a dimmable overhead fixture.`;
-                else if (roomType === 'Living Room') suggestion += `, use layered lighting: ambient, task (reading lamps), and accent lighting (spotlights for art).`;
-                else if (roomType === 'Kitchen') suggestion += `, bright task lighting for countertops, under-cabinet lights, and good general overhead lighting are key.`;
-                else if (roomType === 'Bathroom') suggestion += `, ensure bright, even lighting around the mirror for grooming, and consider a separate dimmable fixture for relaxation.`;
-                else if (roomType === 'Dining Room') suggestion += `, a dimmable chandelier over the table is essential, complemented by ambient lighting.`;
-                else if (roomType === 'Office') suggestion += `, focus on good task lighting for the desk and glare-free ambient light.`;
-                else if (roomType === 'Hallway') suggestion += `, use evenly spaced ceiling lights or wall sconces for safe passage.`;
-                else suggestion += `, general ambient lighting is usually suitable.`;
-                suggestions.push(suggestion);
+        doc.autoTable({
+            startY: yOffset + 5,
+            head: [tableHeaders],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', halign: 'center' },
+            styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+            columnStyles: {
+                0: { cellWidth: 20 },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 20 },
+                3: { cellWidth: 20, halign: 'right' },
+                4: { cellWidth: 20, halign: 'right' },
+                5: { cellWidth: 20, halign: 'right' },
+                6: { cellWidth: 35 }
+            },
+            didDrawPage: function(data) {
+                let str = "Page " + doc.internal.getNumberOfPages();
+                doc.setFontSize(8);
+                doc.text(str, 190, doc.internal.pageSize.height - 10);
             }
         });
 
-        if (suggestions.length > 0) {
-            homeLightingSuggestion.innerHTML = suggestions.map(s => `<li>${s}</li>`).join('');
-        } else {
-            homeLightingSuggestion.textContent = 'Suggestions will appear here based on room types.';
-        }
+        // Calculate Totals for PDF (applying discount)
+        let totalNetPrice = 0; // Sum of Price (₹)
+        let totalGst = 0;     // Sum of GST 18%
+        let rawSubtotalIncludingGst = 0; // Sum of Total Price (before overall discount)
+
+        productsToInclude.forEach(product => {
+            totalNetPrice += parseFloat(product['Price (₹)']) || 0;
+            totalGst += parseFloat(product['GST 18%']) || 0;
+            rawSubtotalIncludingGst += parseFloat(product['Total Price']) || 0;
+        });
+
+        // Apply discount to the rawSubtotalIncludingGst
+        const discountAmount = rawSubtotalIncludingGst * (discountPercent / 100);
+        const finalTotalAfterDiscount = rawSubtotalIncludingGst - discountAmount;
+
+        yOffset = doc.autoTable.previous.finalY + 10;
+        doc.setFontSize(12);
+        doc.text("Summary:", 15, yOffset);
+        yOffset += 7;
+        doc.text(`Subtotal (Excluding GST): ₹ ${totalNetPrice.toFixed(2)}`, 15, yOffset);
+        yOffset += 7;
+        doc.text(`Total GST: ₹ ${totalGst.toFixed(2)}`, 15, yOffset);
+        yOffset += 7;
+        doc.text(`Total (Before Discount): ₹ ${rawSubtotalIncludingGst.toFixed(2)}`, 15, yOffset);
+        yOffset += 7;
+        doc.text(`Discount Applied (${discountPercent}%): - ₹ ${discountAmount.toFixed(2)}`, 15, yOffset);
+        yOffset += 7;
+        doc.setFontSize(14);
+        doc.text(`Final Amount (Including GST & Discount): ₹ ${finalTotalAfterDiscount.toFixed(2)}`, 15, yOffset);
+        yOffset += 15;
+
+        // Terms and Conditions
+        doc.setFontSize(10);
+        doc.text("Terms and Conditions:", 15, yOffset);
+        yOffset += 5;
+        const terms = [
+            "1. Prices are valid for 30 days from the date of this estimation.",
+            "2. Payment terms: 50% advance, 50% upon delivery.",
+            "3. Installation charges are separate unless specified.",
+            "4. Goods once sold will not be exchanged or returned.",
+            "5. The provided discount is subject to final approval and may vary."
+        ];
+        terms.forEach(term => {
+            doc.text(term, 15, yOffset);
+            yOffset += 5;
+        });
+
+        doc.save(`Estimation-${estimateId}.pdf`);
     }
 
-    addRoomButton.addEventListener('click', () => {
-        const newRoomEntry = document.createElement('div');
-        newRoomEntry.classList.add('room-entry');
-        newRoomEntry.innerHTML = `
-            <label for="roomType${roomCount}">Room Type:</label>
-            <select id="roomType${roomCount}" aria-label="Room type selection">
-                <option value="">Select Room</option>
-                <option value="Bedroom">Bedroom</option>
-                <option value="Living Room">Living Room</option>
-                <option value="Kitchen">Kitchen</option>
-                <option value="Bathroom">Bathroom</option>
-                <option value="Dining Room">Dining Room</option>
-                <option value="Office">Office</option>
-                <option value="Hallway">Hallway</option>
-            </select>
-            <label for="numBedrooms${roomCount}">Number of Bedrooms:</label>
+    // Trigger initial calculations for all tools on page load
+    convertFeetToMeters();
+    calculateLumens();
+    calculateApproxLux();
+    calculateLedDriverSpecs();
+    // No automatic product load here; it will happen when the tab is clicked or button is pressed
+});
