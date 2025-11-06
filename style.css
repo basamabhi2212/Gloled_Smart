@@ -1,244 +1,276 @@
-/* Basic Reset and Variables */
 :root {
-    --primary-color: #3498db; /* Blue */
-    --secondary-color: #2c3e50; /* Dark Blue/Gray */
-    --background-color: #1a1a1a; /* Very Dark Gray */
-    --text-color: #ecf0f1; /* Off-White */
-    --card-bg: #2b2b2b;
-    --border-color: #444;
-    --success-color: #27ae60;
-    --error-color: #e74c3c;
-    --font-family: 'Arial', sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --background-color: #f8f9fa;
+    --card-background: #ffffff;
+    --border-color: #dee2e6;
+    --text-color: #343a40;
+    --heading-color: #212529;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-border: #ced4da;
+    --focus-outline: rgba(0, 123, 255, 0.25);
 }
 
 body {
-    font-family: var(--font-family);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
 }
 
-/* Header & Typography */
 header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
     text-align: center;
-    margin-bottom: 30px;
-    padding: 20px 0;
-    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 h1 {
-    color: var(--primary-color);
-    margin-bottom: 5px;
+    margin: 0;
+    font-size: 2rem;
 }
 
-h2, h3 {
-    margin-top: 20px;
-    margin-bottom: 15px;
-    border-left: 4px solid var(--primary-color);
-    padding-left: 10px;
-}
-
-.use-case {
-    font-style: italic;
-    color: #bdc3c7;
-    margin-bottom: 15px;
-}
-
-/* Navigation (Tabs) */
 .tabs {
     display: flex;
     justify-content: center;
-    margin-bottom: 30px;
-    gap: 10px;
+    background-color: var(--card-background);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px var(--shadow-color);
 }
 
 .tab-button {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    padding: 10px 20px;
+    background-color: transparent;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s, border-color 0.3s;
-    border-radius: 5px;
+    transition: all 0.3s ease;
+    color: var(--text-color);
+    border-bottom: 2px solid transparent;
 }
 
 .tab-button:hover:not(.active) {
-    background-color: #34495e;
+    background-color: #e9ecef;
+    color: var(--primary-color);
 }
 
 .tab-button.active {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
     font-weight: bold;
 }
 
-/* Main Content and Tool Cards */
 .container {
-    max-width: 900px;
-    margin: auto;
-    padding: 0 15px;
+    max-width: 1200px;
+    margin: 0 auto 2rem auto;
+    padding: 0 1rem;
+    flex-grow: 1;
 }
 
-.tool-group.hidden {
+.tab-content {
     display: none;
+    padding: 1rem 0;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.tab-content.active {
+    display: grid; /* Use grid for layout of tool cards */
 }
 
 .tool-card {
-    background-color: var(--card-bg);
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    display: grid;
-    gap: 20px;
-    /* Responsive Grid for inputs */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid var(--border-color);
-    margin: 30px 0;
-}
-
-/* Input Fields and Labels */
-.input-group, .result-display {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px var(--shadow-color);
     display: flex;
     flex-direction: column;
+    gap: 1rem;
 }
 
-label {
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #bdc3c7;
+.tool-card h2 {
+    color: var(--heading-color);
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
 }
 
-input[type="number"], select {
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: var(--background-color);
+.tool-card .use-case {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 0.75rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-group label {
+    font-weight: bold;
+    color: var(--heading-color);
+    font-size: 0.95rem;
+}
+
+input[type="number"],
+select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--input-border);
+    border-radius: 0.25rem;
+    font-size: 1rem;
     color: var(--text-color);
-    font-size: 16px;
-    transition: border-color 0.2s;
+    box-sizing: border-box; /* Ensure padding doesn't increase width */
+    -webkit-appearance: none; /* Remove default styling for number inputs */
+    -moz-appearance: textfield; /* Firefox styling */
 }
 
-input[type="number"]:focus, select:focus {
+input[type="number"]:focus,
+select:focus {
     border-color: var(--primary-color);
-    outline: none;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem var(--focus-outline);
 }
 
-/* Results and Feedback */
-.result-display label, .result-area {
+.result-display {
+    background-color: #e9f7ff; /* Light blue background for results */
+    border: 1px solid #cceeff;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: var(--primary-color);
-    margin-top: 10px;
+    margin-top: 1rem;
 }
 
-output {
-    font-size: 24px;
-    color: var(--success-color);
-    padding: 5px 0;
-    display: block;
+.result-display span {
+    color: var(--heading-color);
 }
 
-.recommendation-area {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: var(--secondary-color);
-    border: 1px solid var(--primary-color);
-    border-radius: 4px;
-    font-size: 15px;
-}
-
-.error-message {
-    color: var(--error-color);
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-/* Dynamic Home Lighting UI */
-#roomContainers {
+/* Home Purpose Lighting Suggestion Specific Styles */
+#roomContainer {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
 .room-entry {
-    background-color: #3a3a3a;
-    padding: 15px;
-    border-radius: 5px;
     display: grid;
     grid-template-columns: 1fr 1fr auto;
-    gap: 10px;
-    align-items: end;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 0.25rem;
 }
 
-.room-entry .input-group {
-    margin-bottom: 0;
+.room-entry label {
+    font-weight: normal; /* Less bold than main input labels */
 }
 
-.remove-room-btn {
-    background-color: var(--error-color);
-    color: var(--text-color);
+.room-entry select {
+    width: 100%;
+}
+
+.remove-room-button {
+    background-color: #dc3545; /* Red for remove button */
+    color: white;
     border: none;
-    padding: 10px 12px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
     cursor: pointer;
-    border-radius: 4px;
-    font-weight: bold;
-    transition: background-color 0.2s;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
 }
 
-.remove-room-btn:hover {
-    background-color: #c0392b;
+.remove-room-button:hover {
+    background-color: #c82333;
 }
 
-#addRoomBtn {
-    background-color: var(--success-color);
-    color: var(--text-color);
+#addRoomButton {
+    background-color: var(--primary-color);
+    color: white;
     border: none;
-    padding: 10px 15px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
     cursor: pointer;
-    border-radius: 4px;
-    font-weight: bold;
-    transition: background-color 0.2s;
-    width: fit-content;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+    width: auto;
+    align-self: flex-start; /* Align button to start of card */
 }
 
-#addRoomBtn:hover {
-    background-color: #2ecc71;
+#addRoomButton:hover {
+    background-color: #0056b3;
 }
 
-/* Accessibility Focus States */
-button:focus, input:focus, select:focus {
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5); /* Primary color with transparency */
-    outline: none;
+/* Accessibility (A11Y) */
+[aria-label] {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
 }
 
-/* Media Query for Mobile Responsiveness */
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
+/* Basic responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 0.5rem;
     }
-    .tabs {
-        flex-direction: column;
+
+    h1 {
+        font-size: 1.75rem;
     }
+
+    .tab-button {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .tab-content {
+        grid-template-columns: 1fr; /* Stack cards on mobile */
+    }
+
     .tool-card {
-        grid-template-columns: 1fr; /* Stack inputs vertically on small screens */
+        padding: 1rem;
     }
+
     .room-entry {
-        grid-template-columns: 1fr; /* Stack room entry elements */
+        grid-template-columns: 1fr; /* Stack room entry elements on mobile */
     }
-    .remove-room-btn {
+
+    .room-entry label {
+        margin-top: 0.5rem;
+    }
+}
+
+/* Further smaller mobile adjustments */
+@media (max-width: 480px) {
+    .tabs {
+        flex-direction: column; /* Stack tab buttons on very small screens */
+    }
+
+    .tab-button {
         width: 100%;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .tab-button.active {
+        border-bottom: 2px solid var(--primary-color); /* Maintain active indicator */
     }
 }
